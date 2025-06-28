@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <style>
+    #f_table {
+      font-family: Arial, Helvetica, sans-serif;
+      border-collapse: collapse;
+      font-size: medium;
+      width: 100%;
+      font-weight: normal;
+    }
+    
+    #f_table td, #f_table th {
+      border: 1px solid #ddd;
+      padding: 8px;
+      white-space: pre-wrap;
+    }
+    
+    #f_table tr:nth-child(even){background-color: #f2f2f2;}
+    
+    #f_table tr:hover {background-color: #ddd;}
+    
+    #f_table th {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      text-align: left;
+      background-color: #405cf5;
+      color: white;
+    }
+    </style> 
+<title>Редактор шаблона</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style_editor.css') }}">
+
+<ul>
+  <li><a href="plotly_editor">Шаблоны</a></li>
+  <li><a href="add_source">Источники</a></li>
+  <li><a href="add_graph">Диаграммы</a></li>
+  <li><a href="manager" class="active">Менеджер</a></li>
+  <li><a href="/">Главная</a></li>
+</ul>
+</head>
+<body>
+<center>
+<h1>Управление БД</h1>
+<label for="tables">Таблица: </label>
+<select name="tables" id="tables">
+    <option value="sources">Источники</option>
+    <option value="groups">Группы</option>
+    <option value="plots">Шаблоны</option>
+    <option value="diagrams">Диаграммы</option>
+</select>
+
+<div id="f_table" style="white-space: pre-wrap;">
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+<script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/manager.js') }}"></script>
+</body>
+</html>

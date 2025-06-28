@@ -1,0 +1,83 @@
+"feature";"query"
+"a_bar_2";"SELECT
+                quiza.quiz,
+                mdl_quiz.name,
+                AVG(quiza.sumgrades)/MAX(quiza.sumgrades)*100 as average,
+                qa.questionid,
+                qa.questionsummary
+FROM mdl_quiz_attempts quiza
+JOIN mdl_question_usages qu ON qu.id = quiza.uniqueid
+JOIN mdl_question_attempts qa ON qa.questionusageid = qu.id
+JOIN mdl_question_attempt_steps qas ON qas.questionattemptid = qa.id
+JOIN mdl_quiz ON mdl_quiz.id = quiza.quiz
+GROUP BY qa.questionid
+ORDER BY quiza.quiz"
+"a_bar_1";"SELECT `mdl_user`.`id`, `mdl_quiz_grades`.`quiz`, `mdl_quiz`.`name`, `mdl_quiz_grades`.`grade` / `mdl_quiz`.`grade` * 100 AS grade, `mdl_groups`.`name` AS `group_name`
+            FROM `mdl_quiz_grades`
+            JOIN `mdl_user`
+            ON `mdl_quiz_grades`.`userid` = `mdl_user`.`id`
+            JOIN `mdl_quiz`
+            ON `mdl_quiz_grades`.`quiz` = `mdl_quiz`.`id`
+            JOIN `mdl_groups_members`
+            ON `mdl_groups_members`.`userid` = `mdl_user`.`id`
+            JOIN `mdl_groups`
+            ON `mdl_groups_members`.`groupid` = `mdl_groups`.`id`
+            ORDER BY `mdl_user`.`id` "
+"bar_2";"SELECT `mdl_quiz`.`name`, `mdl_quiz_grades`.`grade`/`mdl_quiz`.`grade` * 100 AS grade, ""????????????"" AS type
+                FROM `mdl_quiz_grades`
+                JOIN `mdl_quiz`
+                ON `mdl_quiz_grades`.`quiz` = `mdl_quiz`.`id`
+                WHERE `mdl_quiz`.`course` = {var1} AND `mdl_quiz_grades`.`userid` = {userid}
+                GROUP BY `mdl_quiz`.`name`
+
+                UNION
+                SELECT `mdl_quiz`.`name`, (`mdl_quiz_grades`.`grade`/`mdl_quiz`.`grade` * 100) AS grade, ""?????"" AS type
+                FROM `mdl_quiz_grades`
+                JOIN `mdl_quiz`
+                ON `mdl_quiz_grades`.`quiz` = `mdl_quiz`.`id`
+                WHERE `mdl_quiz`.`course` = {var1} AND (`mdl_quiz`.`name` in (SELECT `mdl_quiz`.`name` FROM `mdl_quiz_grades` JOIN `mdl_quiz`
+                ON `mdl_quiz_grades`.`quiz` = `mdl_quiz`.`id` WHERE `mdl_quiz_grades`.`userid` = {userid} GROUP BY `mdl_quiz`.`name` HAVING COUNT(*) = 1))
+                GROUP BY `mdl_quiz`.`name`
+
+                UNION 
+                SELECT `mdl_quiz`.`name`, AVG(`mdl_quiz_grades`.`grade` / `mdl_quiz`.`grade` * 100) AS grade, ""??????"" AS type
+                FROM `mdl_quiz_grades`
+                JOIN `mdl_user`
+                ON `mdl_quiz_grades`.`userid` = `mdl_user`.`id`
+                JOIN `mdl_quiz`
+                ON `mdl_quiz_grades`.`quiz` = `mdl_quiz`.`id`
+                JOIN `mdl_groups_members`
+                ON `mdl_groups_members`.`userid` = `mdl_user`.`id`
+                JOIN `mdl_groups`
+                ON `mdl_groups_members`.`groupid` = `mdl_groups`.`id`
+                WHERE `mdl_quiz`.`course` = {var1} AND  `mdl_groups`.`id` = {var2} AND (`mdl_quiz`.`name` in (SELECT `mdl_quiz`.`name` FROM `mdl_quiz_grades` JOIN `mdl_quiz`
+                ON `mdl_quiz_grades`.`quiz` = `mdl_quiz`.`id` WHERE `mdl_quiz_grades`.`userid` = {userid} GROUP BY `mdl_quiz`.`name` HAVING COUNT(*) = 1))
+                GROUP BY `mdl_quiz`.`name`;"
+"bar_1";"SELECT `mdl_user`.`id`, `mdl_quiz_grades`.`quiz`, `mdl_quiz`.`name`, `mdl_quiz`.`course`, `mdl_quiz_grades`.`grade` / `mdl_quiz`.`grade` * 100 AS grade
+            FROM `mdl_quiz_grades`
+            JOIN `mdl_user`
+            ON `mdl_quiz_grades`.`userid` = `mdl_user`.`id`
+            JOIN `mdl_quiz`
+            ON `mdl_quiz_grades`.`quiz` = `mdl_quiz`.`id`
+            WHERE `mdl_user`.`id` = {userid} AND `mdl_quiz`.`course` = {var1};"
+"key";"SELECT `mdl_admin_keys`.`hash` FROM `mdl_admin_keys`
+            WHERE `mdl_admin_keys`.`user_id` = {userid}
+            LIMIT 1;"
+"update_key";"UPDATE `mdl_admin_keys`
+            SET  `mdl_admin_keys`.`hash` = '{var2}'
+            WHERE `mdl_admin_keys`.`hash` = '{var1}' AND `mdl_admin_keys`.`user_id` = {userid};"
+"group_id";"SELECT `mdl_groups_members`.`groupid` FROM `mdl_groups_members`
+            JOIN `mdl_groups`
+            ON `mdl_groups_members`.`groupid` = `mdl_groups`.`id`
+            WHERE (`mdl_groups_members`.`userid` = {userid}) AND (`mdl_groups`.`courseid` = {var1})
+            LIMIT 1;"
+"get_features";"SELECT `plots`.`feature`, `plots`.`name` FROM `plots` WHERE `plots`.`groups` = {userid}"
+"get_names";"SELECT `plots`.`name` FROM `plots` WHERE `plots`.`groups` = {userid}"
+"pie_1";"SELECT case when (`mdl_quiz_grades`.`grade` / `mdl_quiz`.`grade` > 0.7) then ""Passed"" else ""Failed"" end as result, COUNT(*) AS counter
+FROM `mdl_quiz_grades`
+JOIN `mdl_user`
+ON `mdl_quiz_grades`.`userid` = `mdl_user`.`id`
+JOIN `mdl_quiz`
+ON `mdl_quiz_grades`.`quiz` = `mdl_quiz`.`id`
+WHERE `mdl_user`.`id` = {userid} AND `mdl_quiz`.`course` = {var1}
+GROUP BY result;"

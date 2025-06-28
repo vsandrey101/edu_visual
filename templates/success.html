@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Редактор шаблона</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style_editor.css') }}">
+
+<ul>
+  <li><a href="plotly_editor">Шаблоны</a></li>
+  <li><a href="add_source">Источники</a></li>
+  <li><a href="add_graph">Диаграммы</a></li>
+  <li><a href="manager">Менеджер</a></li>
+  <li><a href="/">Главная</a></li>
+</ul>
+</head>
+<body>
+<center>
+<h1>Действие выполнено!</h1>
+<div style="text-align: center;">
+  <img src="{{ url_for('static', filename='ok.png') }}" alt="успешно" />
+</div>
+</body>
+</html>

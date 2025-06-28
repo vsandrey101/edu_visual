@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Редактор шаблона</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style_editor.css') }}">
+
+<ul>
+  <li><a href="plotly_editor">Шаблоны</a></li>
+  <li><a href="add_source" class="active">Источники</a></li>
+  <li><a href="add_graph">Диаграммы</a></li>
+  <li><a href="manager">Менеджер</a></li>
+  <li><a href="/">Главная</a></li>
+</ul>
+</head>
+<body>
+<center>
+<h1>Загрузка CSV</h1>
+<form method = "POST" enctype="multipart/form-data" action = "/load_csv">    
+  <center>
+  <label for="fname">Название источника:</label><br>
+  <input type="text" id="fname" required name="fname"><br>
+  <input type="file" name="file" accept=".csv"><br>
+  <input type = "submit" value="Загрузить"> 
+  </center>
+</form>
+</body>
+</html>

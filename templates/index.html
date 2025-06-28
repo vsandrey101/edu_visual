@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style_editor.css') }}">
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript" defer>
+        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+      
+        ym(99026826, "init", {
+            clickmap:true,
+            trackLinks:true,
+            accurateTrackBounce:true,
+            webvisor:false
+        });
+        console.log("loaded metrika");
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/99026826" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    
+    <!-- /Yandex.Metrika counter -->
+    <meta charset="UTF-8">
+    <title>Статистика</title>
+    <!--Подключен стиль-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <!-- В будущем для подгрузки JS с сервера
+    <script src="{{ url_for('static', filename='js/plotly-latest.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/d3.min.js') }}"></script>
+    -->
+
+   
+   
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <script src="{{ url_for('static', filename='js/popup_min.js') }}"></script>
+    
+</head>
+<body>
+<div class="container">
+    <div class="row">
+       <div class="col-xs-3"> 
+            <label>Тип графика</label>
+            <select class="form-control" id ='type'>
+            </select> <br>
+            <!-- <div id="btn_space" style="display: none;">
+                <button onclick="redirect()" type="button">
+                    Настройка</button>
+            </div> -->
+            <label for="in_id">ID: </label>
+            <input type="number" id="in_id" min=0> 
+        </div>
+        <div class="col-md-6">
+            <div class="chart" id="bargraph">
+                <script>
+                    
+                    var graphs = {{plot | safe}};
+                    //var config = {"displaylogo": False};
+                    graphs.config = {'displaylogo': false, 'displayModeBar': false}
+                    //Plotly.setPlotConfig(config);
+                    Plotly.plot('bargraph',graphs, {});
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/plots.js') }}"></script>
+
+</body>
+<footer>
+    <center>
+        <p><a href="/manager" style="color: grey; text-decoration: none;">Панель управления</a></p>
+    </center>
+</footer>
+</html>

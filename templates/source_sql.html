@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Настройка SQL</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style_editor.css') }}">
+
+<ul>
+  <li><a href="plotly_editor">Шаблоны</a></li>
+  <li><a href="add_source" class="active">Источники</a></li>
+  <li><a href="add_graph">Диаграммы</a></li>
+  <li><a href="manager">Менеджер</a></li>
+  <li><a href="/">Главная</a></li>
+</ul>
+</head>
+<body>
+<center>
+<h1>Добавление SQL</h1>
+</center>
+<form id="form" method = "POST" enctype="multipart/form-data" action = "/add_any">
+<label for="name">Название источника:</label><br>
+<input type="text" id="name" required name="name"><br>
+<label for="editor-1">SQL запрос:</label><br>
+<div id="editor-1"></div>
+<input name="path" type="hidden" id="path">
+<input type="hidden" id="table" name="table" value="sources">
+<input type="hidden" id="type" name="type" value="1">
+<label for="credits">Данные для подключения (ХОСТ&ИМЯ_БД&ЮЗЕР):</label><br>
+<input type="text" id="credits" required style="width: 50%"><br>
+<div class="wrapper">
+<button type="submit">Добавить</button>
+</div>
+</form>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+<script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ace.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ext-language_tools.js') }}"></script>
+<script src="{{ url_for('static', filename='js/init_editor_sql.js') }}"></script>
+
+
+
+</body>
+</html>

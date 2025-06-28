@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Редактор шаблона</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style_editor.css') }}">
+
+<ul>
+  <li><a href="plotly_editor">Шаблоны</a></li>
+  <li><a href="add_source" class="active">Источники</a></li>
+  <li><a href="add_graph">Диаграммы</a></li>
+  <li><a href="manager">Менеджер</a></li>
+  <li><a href="/">Главная</a></li>
+</ul>
+</head>
+<body>
+<center>
+<h1>Выберите тип источника</h1>
+<button onclick="location.href='load_sql'" type="button">SQL источник</button>
+<button onclick="location.href='load_csv'" type="button">CSV источник</button>
+</body>
+</html>

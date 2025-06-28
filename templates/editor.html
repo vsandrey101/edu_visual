@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Редактор</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style_editor.css') }}">
+
+<ul>
+  <li><a href="editor" class="active">Шаблоны</a></li>
+  <li><a href="test">Группы</a></li>
+  <li><a href="/">Главная</a></li>
+</ul>
+</head>
+<body>
+<form id="form">
+<label for="fname">Название графика:</label><br>
+<input type="text" id="fname" required name="fname"><br>
+<label for="index">Внутренне название:</label><br>
+<input type="text" id="index" required pattern="[a-z, 0-9, _]{2,255}" name="index"><br>
+<label for="group-select">Группа:</label>
+
+<select name="groups" id="group-select">
+  <option value="0">Обучающиеся</option>
+  <option value="1">Администраторы</option>
+</select><br>
+<label for="editor-1">SQL запрос:</label><br>
+<div id="editor-1">
+</div>
+
+<label for="editor-2">Plotly код:</label><br>
+<div id="editor-2">#available objects: fig, px, go
+#to use your own variables define it as global
+</div>
+<div class="wrapper">
+<button type="submit">Добавить</button>
+</div>
+</form>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+<script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ace.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ext-language_tools.js') }}"></script>
+<script src="{{ url_for('static', filename='js/init_editors.js') }}"></script>
+
+
+
+</body>
+</html>
