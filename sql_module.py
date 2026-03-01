@@ -1,13 +1,17 @@
 import mysql.connector as connection
 from werkzeug.security import generate_password_hash
-
+from time import sleep
 def get_db():
-    try:
-        db_app = connection.connect(host="localhost", database = 'app_db', user="admin1", password="admin1",use_pure=True)
-    except Exception as e:
-        db_app.close()
-        print(str(e))
-    return db_app 
+    retries = 5
+    while retries > 0:
+        try:
+            db_app = connection.connect(host="db", database = 'app_db', user="root", password="root_password",use_pure=True)
+            return db_app
+        except Exception as e:
+            print(f"db hasn't load")
+            retries -= 1
+            sleep(5)
+    raise Exception("Attempts weren't succesful")
 
 def admins():
     db_app = get_db()
