@@ -8,7 +8,8 @@ import pandas as pd
 import numpy as np
 import json, os, re, csv
 import mysql.connector as connection
-from sql_module import get_code, list_diagrams, admins, params, sql_source, list_tables, add_table, get_db, delete_row
+#from sql_module import get_code, list_diagrams, admins, params, sql_source, list_tables, add_table, get_db, delete_row
+from sql_module import *
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
@@ -52,12 +53,12 @@ def index():
 def load_source(id):
     s_type, in_str = sql_source(id)
     if s_type == False:
-        df = pd.read_csv(in_str)
+        df = pd.read_csv(in_str, sep=';')
     else:
         credintials, query = in_str.split("@")
         credintials = credintials.split("&")
         try:
-            mydb = connection.connect(host=credintials[0], database = credintials[1], user=credintials[2],use_pure=True)
+            mydb = connection.connect(host=credintials[0], database = credintials[1], user=credintials[2], password=credintials[3], use_pure=True)
         except Exception as e:
             mydb.close()
             print(str(e))
@@ -67,13 +68,28 @@ def load_source(id):
 
 
 
-def create_plot(feature, userid):
+def create_plot(feature, userid, group, unhash):
     template_id, source_id, vars = params(feature)
     df = load_source(source_id)
+    #print(vars,df)
+    #пример запроса f строкой для дальнейшей фильтрации
+    #df.query(f'Результат = FAILED')
+    #TODO:убрать экранирование переменных
+    
     df = df.rename(columns=json.loads(vars))
-    print(df.columns.values)
-    df = (df[df['ID'] == int(userid)])
+    print(df)
+    print(df.columns.values, userid)
+    #фильтр по id
+    if userid != "":
+        if unhash == "1":
+            df = (df[df['ID'] == int(userid)])
+        else:
+            hash_name = get_stud_id_hash(userid, group)
+            df = (df[df['ID'] == hash_name])
     #создание global объекта для изменения в exec
+    print(df)
+    print(df.dtypes)
+    
     fig = None
     #получение исполняемого кода из бд
     executive_code = get_code(template_id)
@@ -83,6 +99,7 @@ def create_plot(feature, userid):
     fig = loc["fig"]
     #общее форматирование для всех графиков
     #убраны отступы по сторонам   
+    print(fig)
     fig.update_layout(margin=dict(l=0, r=0, b=0, t=60),)
     #отключен зум и перемещение графиков за пределы значений
     fig.update_xaxes(fixedrange=True)
@@ -94,15 +111,20 @@ def create_plot(feature, userid):
 def change_features():
     feature = request.args['selected']
     userid = request.args['id']
-    graphJSON= create_plot(feature, userid)
+    group = request.args['group']
+    unhash = request.args['unhash']
+    print(unhash)
+    graphJSON= create_plot(feature, userid, group, unhash)
     return graphJSON
 
 
 #динамические списки графиков
 @app.route('/list', methods=['POST'])
 def get_list():
-    id = request.form.get("user_id")
-    features = list_diagrams(id)
+    #id = request.form.get("user_id")
+    group = request.form.get("group")
+    #features = list_diagrams(id, group)
+    features = list_diagrams(group)
     response = app.response_class(
         response=json.dumps(features),
         status=201,
@@ -110,16 +132,18 @@ def get_list():
     )
     return response
 
-@app.route('/feedback', methods=['POST'])
-def get_feedback():
-    plot_id = request.form.get("plot_id")
-    mark = request.form.get("mark")
-    print(plot_id, mark)
-    with open('feedback.csv', 'a', newline='') as csvfile:
-        fields = ['Plot_ID','Mark']
-        writer = csv.DictWriter(csvfile, fieldnames=fields)
-        writer.writerow({fields[0]:plot_id, fields[1]:mark})
-    return "", 200
+
+#Функция для сбора обратной связи от пользователей
+# @app.route('/feedback', methods=['POST'])
+# def get_feedback():
+#     plot_id = request.form.get("plot_id")
+#     mark = request.form.get("mark")
+#     print(plot_id, mark)
+#     with open('feedback.csv', 'a', newline='') as csvfile:
+#         fields = ['Plot_ID','Mark']
+#         writer = csv.DictWriter(csvfile, fieldnames=fields)
+#         writer.writerow({fields[0]:plot_id, fields[1]:mark})
+#     return "", 200
 
 
 def add_line_breaks(text):
@@ -131,13 +155,10 @@ def add_line_breaks(text):
 def load_manager():
     table = request.args['selected']
     db_app = get_db()
-    df = pd.read_sql(f"""SELECT * FROM  {table}""", db_app)
+    print(auth.current_user())
+    df = pd.read_sql(f"""SELECT * FROM  {table} WHERE tutor_id = {auth.current_user()} OR tutor_id = 0""", db_app)
     all_id = df["id"].tolist()
-    # links = []
-    # for id in all_id:
-    #     str = f"""=HYPERLINK("http://45.155.204.231:8000/delete?table={table}&id={id}", "Удалить")"""
-    #     links.append(str)
-    df['id'] = df['id'].apply(lambda x: f'<a href="http://45.155.204.231:8000/delete?table={table}&id={x}">{x}</a>')
+    df['id'] = df['id'].apply(lambda x: f'<a href="{request.host_url}delete?table={table}&id={x}">{x}</a>')
     df = df.style.format({'Text': add_line_breaks})
     
     db_app.close()
@@ -153,16 +174,17 @@ def load_manager():
 def deleter():
     id = request.args['id']
     table = request.args['table']
-    delete_row(table, id)
+    print(auth.current_user())
+    delete_row(table, id, auth.current_user())
     return render_template("success.html")
 
 @app.route('/list_service', methods=['POST'])
 @auth.login_required
 def service_list():
     combinations = {
-    "select1" : list_tables("plots"),
-    "select2" : list_tables("sources"),
-    "select3" : list_tables("groups")
+    "select1" : list_tables("plots", auth.current_user()),
+    "select2" : list_tables("sources", auth.current_user()),
+    "select3" : list_tables("groups", auth.current_user())
     }   
     response = app.response_class(
         response=json.dumps(combinations),
@@ -210,6 +232,7 @@ def new_plot():
 def new_graph():
     return render_template("build.html")
 
+
 @app.route('/add_source', methods=['GET'])
 @auth.login_required
 def choose_type():
@@ -230,8 +253,13 @@ def add_any():
     for h in headers:
         result = request.form[h]  
         params.append(result)
+        
+    #связь с тутором
+    params.append(auth.current_user())
+    headers.append("tutor_id")
     headers = ", ".join(["`" + val + "`" for val in headers])
     params = create_string(params)
+
     add_table(table, headers, params)
     #return "", 200
     return render_template("success.html")
@@ -245,17 +273,44 @@ def uploadFile():
         f = request.files.get('file')
         name = request.form['fname']  
         # Extracting uploaded file name
+        
         data_filename = secure_filename(f.filename)
- 
-        f.save(os.path.join(app.config['UPLOAD_FOLDER'],
-                            data_filename))
+        #print(data_filename)
+        os.makedirs(f"uploads/{str(auth.current_user())}", exist_ok=True)
+        f.save(os.path.join(app.config['UPLOAD_FOLDER'], str(auth.current_user()), data_filename))
         session['uploaded_data_file_path'] = os.path.join(app.config['UPLOAD_FOLDER'],
-        data_filename)
-        str_out = create_string([name, "0", ("uploads/" + str(f.filename))])
-        add_table("sources", "`name`, `type`, `path`", str_out)
+        str(auth.current_user()), data_filename)
+        str_out = create_string([auth.current_user(), name, "0", (f"uploads/{str(auth.current_user())}/" + str(f.filename))])
+        
+        add_table("sources", "`tutor_id`,`name`, `type`, `path`", str_out)
         return render_template("success.html")
     else:
         return render_template("source_csv.html")
+    
+@app.route('/hash', methods=['GET'])
+def hash_gen():
+    return render_template("hash.html")
+
+@app.route('/gallery', methods=['GET'])
+def show_gallery():
+    return render_template("gallery.html")
+
+#добавление студентов
+@app.route('/add_stud', methods=['GET', 'POST'])
+@auth.login_required
+def add_stud():
+    if request.method == 'POST':
+        names = request.json["Names"]
+        groups = request.json["Groups"]
+        #прописываем предварительно группы
+        for uni_group in set(groups):
+            get_group_id(uni_group, auth.current_user())
+        
+        for name, group in zip(names, groups):
+            add_stud_db(name, auth.current_user(), get_group_id(group, auth.current_user()))
+        return "", 200
+    else:
+        return render_template("add_stud.html")
 
 if __name__ == '__main__':
-    app.run(host = "0.0.0.0", port=8000)
+    app.run(host = "0.0.0.0", port=5000)

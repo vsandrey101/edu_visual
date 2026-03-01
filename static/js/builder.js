@@ -3,7 +3,7 @@ $(document).ready(function(){
     var j_obj = "{}";
     $.ajax({
         async: false,
-        url: "http://45.155.204.231:8000/list_service",
+        url: "/list_service",
         type: "POST",
         data: {
             'change': 1
@@ -23,17 +23,20 @@ $(document).ready(function(){
             }));
         }
         
+        
       }
       $('.invent').trigger("change");
 });
 
 
 $('.invent').on('change',function(){
+    //clear vars and checks
     $("#var_list").empty();
+    //$("#filter_list").empty();
     var j_obj = "{}";
     $.ajax({
         async: false,
-        url: "http://45.155.204.231:8000/list_headers",
+        url: "/list_headers",
         type: "POST",
         data: {
             'plot_id': document.getElementById("select1").value,
@@ -47,6 +50,24 @@ $('.invent').on('change',function(){
     })
     inputs = j_obj.headers_code;
     opts = j_obj.headers_source;
+    console.log(opts)
+      //const filed_filters = document.getElementById('filters_check');
+
+    //var selectList = document.createElement("select");
+    //selectList.id = "Filters";
+    //selectList.setAttribute("multiple", "");
+    //var label = document.createElement("label");
+    //label.innerText = "Фильтры"
+   // var myParent = document.getElementById('filter_list');
+    //myParent.appendChild(label);
+    //myParent.appendChild(selectList);
+    // for (var id in opts){
+    //     var option = document.createElement("option");
+    //     option.text = opts[id];
+    //     option.value = opts[id];
+    //     var select = document.getElementById("Filters");
+    //     select.appendChild(option);
+    // }
     for (var selecter in inputs) {
     var selectList = document.createElement("select");
     selectList.id = inputs[selecter];
@@ -56,6 +77,7 @@ $('.invent').on('change',function(){
     var myParent = document.getElementById('var_list');
     myParent.appendChild(label);
     myParent.appendChild(selectList);
+    
     //Create and append the options
     for (var id in opts){
         var option = document.createElement("option");
@@ -63,6 +85,7 @@ $('.invent').on('change',function(){
         option.value = opts[id];
         var select = document.getElementById(inputs[selecter]);
         select.appendChild(option);
+
     }
 }
 
@@ -83,7 +106,9 @@ document.getElementById("form").onsubmit = function(evt) {
     key.forEach(function (k, i) {
         object[k] = value[i];
     })
- 
+    
     document.getElementById("vars").value = JSON.stringify(object);
+    navigator.clipboard.writeText(textToCopy);
+    //document.getElementById("filters").value = JSON.stringify(object);
 }
 

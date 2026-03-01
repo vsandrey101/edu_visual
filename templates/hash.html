@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Хэширование CSV</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style_editor.css') }}">
+</head>
+<body>
+  <center>
+  <h1>Шифрование ФИО студентов</h1>
+
+  <label>
+    Выберите CSV файл:
+    <input type="file" id="csvFile" accept=".csv">
+  </label>
+  <br><br>
+  </center>
+
+  <label>
+    Колонка для хэширования:
+    <select id="columnSelect" disabled>
+      <option value="">Сначала выберите файл</option>
+    </select>
+  </label>
+  <br><br>
+  <script src="{{ url_for('static', filename='js/md5.js') }}"></script>
+  <button id="processBtn" disabled>Обработать и скачать</button>
+  
+  <script>
+
+    //парсер CSV [web:7][web:16]
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+      return lines.map(line => line.split(';'));
+    }
+
+    //преобразование массива строк в CSV 
+    function toCSV(rows) {
+      return rows.map(row =>
+        row.map(cell => {
+          const c = String(cell);
+          if (c.includes('"') || c.includes(';') || c.includes('\n')) {
+            return '"' + c.replace(/"/g, '""') + '"';
+          }
+          return c;
+        }).join(';')
+      ).join('\r\n');
+    }
+
+    //текущей даты ГГГГ-ММ-ДД
+    function getCurrentDateYYYYMMDD() {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    const fileInput = document.getElementById('csvFile');
+    const columnSelect = document.getElementById('columnSelect');
+    const processBtn = document.getElementById('processBtn');
+
+    let originalFile = null;
+    let originalRows = null;
+
+    // После выбора файла читаем только заголовок и наполняем 
+    fileInput.addEventListener('change', () => {
+      if (!fileInput.files[0]) {
+        columnSelect.innerHTML = '<option value="">Сначала выберите файл</option>';
+        columnSelect.disabled = true;
+        processBtn.disabled = true;
+        return;
+      }
+
+      originalFile = fileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const rows = parseCSV(text);
+
+        if (!rows.length) {
+          alert('Файл пустой или невалидный.');
+          columnSelect.disabled = true;
+          processBtn.disabled = true;
+          return;
+        }
+
+        originalRows = rows;
+        const header = rows[0];
+
+        // select
+        columnSelect.innerHTML = '';
+        header.forEach((colName, index) => {
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = colName;
+          columnSelect.appendChild(option);
+        });
+
+        columnSelect.disabled = false;
+        processBtn.disabled = false;
+      };
+
+      reader.readAsText(originalFile); 
+    });
+
+    processBtn.addEventListener('click', async () => {
+      if (!originalFile || !originalRows) {
+        alert('Сначала выберите файл.');
+        return;
+      }
+
+      const selectedIndex = columnSelect.value;
+      if (selectedIndex === '') {
+        alert('Выберите колонку для хэширования.');
+        return;
+      }
+      const colIndex = parseInt(selectedIndex, 10);
+
+      const newRows = [originalRows[0].slice()];
+      for (let i = 1; i < originalRows.length; i++) {
+        const row = originalRows[i].slice();
+        const originalValue = row[colIndex] ?? '';
+        row[colIndex] = MD5(originalValue);
+        //console.log(row)
+        newRows.push(row);
+      }
+
+      const newCsvText = toCSV(newRows);
+      const blob = new Blob([newCsvText], { type: 'text/csv;charset=utf-8;' }); 
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const datePrefix = getCurrentDateYYYYMMDD();
+      a.href = url;
+      a.download = `${datePrefix}_hashed_${originalFile.name}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>

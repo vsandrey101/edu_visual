@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash
 
 def get_db():
     try:
-        db_app = connection.connect(host="localhost", database = 'app_db', user="vis_read",use_pure=True)
+        db_app = connection.connect(host="localhost", database = 'app_db', user="admin1", password="admin1",use_pure=True)
     except Exception as e:
         db_app.close()
         print(str(e))
@@ -12,27 +12,24 @@ def get_db():
 def admins():
     db_app = get_db()
     cursor = db_app.cursor()
-    cursor.execute(f"""SELECT `user_id`, `password` FROM `users` WHERE `group_id` = "1";""")
+    cursor.execute(f"""SELECT `user_id`, `password` FROM `users`""")
     admins = dict(cursor.fetchall())
     db_app.close()
     admins = {str(k):generate_password_hash(p) for k, p in admins.items()}
     return admins
      
-def list_tables(table):
+def list_tables(table, user_id):
     db_app = get_db()
     cursor = db_app.cursor()
-    cursor.execute(f"""SELECT `id`, `name` FROM `{table}`""")
+    cursor.execute(f"""SELECT `id`, `name` FROM `{table}` WHERE tutor_id = {user_id} OR tutor_id = 0""")
     data = dict(cursor.fetchall())
     db_app.close()
     return data
 
-def list_diagrams(user_id):
+def list_diagrams(group):
     db_app = get_db()
     cursor = db_app.cursor()
     try:
-        cursor.execute(f"""SELECT `group_id` FROM `users` WHERE `user_id` = {user_id};""")
-        group = cursor.fetchone()[0]
-        print(group)
         cursor.execute(f"""SELECT `id`, `name` FROM `diagrams` WHERE `group_id` = {group};""")
         features = list(cursor.fetchall())
     except:
@@ -115,12 +112,76 @@ def add_table(table, headers, data_str):
     db_app.commit()
     db_app.close()
     
-def delete_row(table, id):
+def delete_row(table, id, tutor_id):
     db_app = get_db()
     cursor = db_app.cursor()
-    cursor.execute(f"""DELETE FROM `{table}` WHERE `{table}`.`id` = {id}""")
+    cursor.execute(f"""DELETE FROM `{table}` WHERE `{table}`.`id` = {id} AND `{table}`.`tutor_id` = {tutor_id}""")
     db_app.commit()
     db_app.close()
+    
+
+# def get_stud_id(hash, tutor_id):
+#     db_app = get_db()
+#     cursor = db_app.cursor()
+#     cursor.execute(f"""SELECT student_id FROM `students` WHERE `students`.`hash_name` = '{hash}' AND `students`.`tutor_id` = {tutor_id}""")
+#     exec_req = cursor.fetchall()
+#     if len(exec_req) > 0:
+#         #возвращаем id со связанным хэшем
+#         return exec_req[0][0]
+#     #если нет, то берем предыдущий максимум+1 или 1 при NULL
+#     cursor.execute(f"""SELECT COALESCE(MAX(student_id)+1, 1) FROM `students` WHERE `students`.`tutor_id` = {tutor_id}""")
+#     exec_req = cursor.fetchone()[0]
+#     db_app.close()
+#     return exec_req
+
+def get_stud_id(hash, tutor_id):
+    db_app = get_db()
+    cursor = db_app.cursor()
+    cursor.execute(f"""SELECT IF((SELECT COUNT(student_id) FROM `students` WHERE `students`.`hash_name` = '{hash}' AND `students`.`tutor_id` = {tutor_id}) > 0, (SELECT student_id FROM `students` WHERE `students`.`hash_name` = '{hash}' AND `students`.`tutor_id` = {tutor_id} LIMIT 1), (SELECT COALESCE(MAX(student_id)+1, 1) FROM `students` WHERE `students`.`tutor_id` = {tutor_id}));""")
+    exec_req = cursor.fetchone()[0]
+    db_app.close()
+    return exec_req
+
+def get_group_id(name, tutor_id):
+    db_app = get_db()
+    cursor = db_app.cursor()
+    cursor.execute(f"""SELECT `groups`.`id` FROM `groups` WHERE `groups`.`tutor_id` = {tutor_id} AND `groups`.`name` = '{name}';""")
+    exec_req = cursor.fetchone()
+    if exec_req is None:
+        #если нет группы, то создаем
+        cursor.execute(f"""INSERT INTO `groups` (`groups`.`tutor_id`, `groups`.`name`) VALUES ({tutor_id}, '{name}');""")
+        db_app.commit()
+        cursor.execute(f"""SELECT `groups`.`id` FROM `groups` WHERE `groups`.`tutor_id` = {tutor_id} AND `groups`.`name` = '{name}';""")
+        exec_req = cursor.fetchone()
+    
+    db_app.close()
+    return exec_req[0]
+
+def add_stud_db(hash, tutor_id, group):
+    db_app = get_db()
+    cursor = db_app.cursor()
+    cursor.execute(f"""SELECT `students`.`id` FROM `students` WHERE `students`.`hash_name` = '{hash}' AND `students`.`tutor_id` = {tutor_id} AND `students`.`groups` = '{group}';""")
+    exec_req = cursor.fetchone()
+    if exec_req is None:
+        stud_id = get_stud_id(hash, tutor_id)
+        #если нет записи, то создаем
+        cursor.execute(f"""INSERT INTO `students` (`students`.`hash_name`, `students`.`tutor_id`, `students`.`student_id`, `students`.`groups`) VALUES ('{hash}', {tutor_id}, {stud_id}, '{group}');""")
+    db_app.commit()
+    db_app.close()
+    
+def get_stud_id_hash(stud_id, group):
+    db_app = get_db()
+    cursor = db_app.cursor()
+    cursor.execute(f"""SELECT `students`.`hash_name` FROM `students` WHERE `students`.`groups` = {group} AND `students`.`student_id` = {stud_id};""")
+    exec_req = cursor.fetchone()[0]
+    db_app.close()
+    return exec_req
+
+
+
+
+#print(get_stud_id("e3cb8fbf7cf35594d3a9613498c74514", 3))
+#print(get_group_id("ГР-1-1", 2))
     
     
 

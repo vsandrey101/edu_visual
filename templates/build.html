@@ -1,6 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+   <style>
+    fieldset.checks {
+    width:200px
+}
+.checks input, .checks label {
+    display:block;
+}
+/*
+.checks input {
+    float:right;
+    width:10px;
+    margin-right:5px
+}*/
+.checks label {
+    float:left;
+    width:180px;
+    margin-left:5px;
+    text-align:left;
+    text-indent:5px;
+    font-size: small;
+}
+   </style>
 <title>Диаграмма</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style_editor.css') }}">
 
@@ -8,6 +30,7 @@
   <li><a href="plotly_editor">Шаблоны</a></li>
   <li><a href="add_source">Источники</a></li>
   <li><a href="add_graph" class="active">Диаграммы</a></li>
+  <li><a href="add_stud">Студенты</a></li>
   <li><a href="manager">Менеджер</a></li>
   <li><a href="/">Главная</a></li>
 </ul>
@@ -20,7 +43,7 @@
 <label for="name">Название диаграммы:</label><br>
 <input type="text" id="name" required name="name"><br>
 
-<label for="template_id">Шаблон:</label><br>
+<label for="template_id"><a href="/gallery" target="_blank">Шаблон:</a></label><br>
 <select name="template_id" required id="select1" class="invent"></select><br>
 <label for="source_id" >Источник:</label><br>
 <select name="source_id" required id="select2" class="invent"></select><br>
@@ -28,10 +51,11 @@
 <select name="group_id" required id="select3"></select><br>
 <input type="hidden" id="table" name="table" value="diagrams">
 <input type="hidden" id="vars" name="vars"> <br>
+<!--<input type="hidden" id="filters" name="filters"> <br>-->
 
-<div id = "var_list" style="padding-top:25px;">
+<div id = "var_list" style="padding-top:25px;"></div>
+<!--<div id = "filter_list"></div>-->
 
-</div>
 
 <button type="submit">Добавить</button>
 </div>

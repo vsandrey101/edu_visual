@@ -8,6 +8,7 @@
   <li><a href="plotly_editor">Шаблоны</a></li>
   <li><a href="add_source" class="active">Источники</a></li>
   <li><a href="add_graph">Диаграммы</a></li>
+  <li><a href="add_stud">Студенты</a></li>
   <li><a href="manager">Менеджер</a></li>
   <li><a href="/">Главная</a></li>
 </ul>
@@ -24,8 +25,14 @@
 <input name="path" type="hidden" id="path">
 <input type="hidden" id="table" name="table" value="sources">
 <input type="hidden" id="type" name="type" value="1">
-<label for="credits">Данные для подключения (ХОСТ&ИМЯ_БД&ЮЗЕР):</label><br>
-<input type="text" id="credits" required style="width: 50%"><br>
+<label for="hostname">Хост:</label><br>
+<input type="text" id="hostname" required style="width: 20%"><br>
+<label for="dbname">Имя БД:</label><br>
+<input type="text" id="dbname" required style="width: 20%"><br>
+<label for="uname">Имя пользователя:</label><br>
+<input type="text" id="uname" required style="width: 20%"><br>
+<label for="password">Пароль:</label><br>
+<input type="text" id="password" required style="width: 20%"><br>
 <div class="wrapper">
 <button type="submit">Добавить</button>
 </div>

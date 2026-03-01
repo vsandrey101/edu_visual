@@ -1,46 +1,46 @@
 //таймер
-var handle;
+// var handle;
 
-const popup = new Popup({
-    id: "override",
-    title: "Обратная связь",
-    content: `Оцените, пожалуйста, текущую диграмму!
-      custom-space-out big-margin§{btn-r1-override}[1]{btn-r2-override}[2]{btn-r3-override}[3]{btn-r4-override}[4]{btn-r5-override}[5]`,
-    sideMargin: "1.5em",
-    fontSizeMultiplier: "1.2",
-    backgroundColor: "#b5bff5",
-    allowClose: false,
-    css: `
-    .popup.override .custom-space-out {
-        display: flex;
-        justify-content: center;
-        gap: 1.5em;
-    }`,
-    loadCallback: () => {
-        /* button functionality */
-        document.querySelectorAll(".popup.override button").forEach((button) => {
-            button.addEventListener("click", () => {
+// const popup = new Popup({
+//     id: "override",
+//     title: "Обратная связь",
+//     content: `Оцените, пожалуйста, текущую диграмму!
+//       custom-space-out big-margin§{btn-r1-override}[1]{btn-r2-override}[2]{btn-r3-override}[3]{btn-r4-override}[4]{btn-r5-override}[5]`,
+//     sideMargin: "1.5em",
+//     fontSizeMultiplier: "1.2",
+//     backgroundColor: "#b5bff5",
+//     allowClose: false,
+//     css: `
+//     .popup.override .custom-space-out {
+//         display: flex;
+//         justify-content: center;
+//         gap: 1.5em;
+//     }`,
+//     loadCallback: () => {
+//         /* button functionality */
+//         document.querySelectorAll(".popup.override button").forEach((button) => {
+//             button.addEventListener("click", () => {
                 
-                $.ajax({
-                    async: false,
-                    url: "https://script.google.com/macros/s/AKfycbwo6SSkVM-K4dIGcyfBWfdldz4YjLITP5AeU--mINNt50AwDhvvy29KtdGxMTrO3Nwiog/exec",
-                    type: "POST",
-                    data: {
-                        'plot_id': document.getElementById('type').value,
-                        'plot_name': document.getElementById('type').innerHTML,
-                        'mark': button.innerHTML
-                    },
-                    dataType:"json",
-                    success: function(){
+//                 $.ajax({
+//                     async: false,
+//                     url: "https://script.google.com/macros/s/AKfycbwo6SSkVM-K4dIGcyfBWfdldz4YjLITP5AeU--mINNt50AwDhvvy29KtdGxMTrO3Nwiog/exec",
+//                     type: "POST",
+//                     data: {
+//                         'plot_id': document.getElementById('type').value,
+//                         'plot_name': document.getElementById('type').innerHTML,
+//                         'mark': button.innerHTML
+//                     },
+//                     dataType:"json",
+//                     success: function(){
                         
-                    }
-                });
-                popup.hide();
+//                     }
+//                 });
+//                 popup.hide();
                 
-            });
-        });
-    },
-})
+//             });
+//         });
+//     },
+// })
 
 function enable_track(plot_id){
     
@@ -124,12 +124,14 @@ $('#in_id').on('change',function(){
     console.log('ID has changed');
     indexes = [];
     names = [];
+    const urlParams = new URLSearchParams(window.location.search);
     $.ajax({
         async: false,
-        url: "http://45.155.204.231:8000/list",
+        url: "/list",
         type: "POST",
         data: {
-            'user_id': user_id
+            'user_id': user_id,
+            'group': urlParams.get('group')
         },
         dataType:"json",
         success: function (data) {
@@ -158,6 +160,7 @@ $('#in_id').on('change',function(){
 })
 
 $('#type').on('change',function(){
+    const urlParams = new URLSearchParams(window.location.search);
     //console.log(document.getElementById('type').value)
     $.ajax({
         url: "/bar",
@@ -165,16 +168,19 @@ $('#type').on('change',function(){
         contentType: 'application/json;charset=UTF-8',
         data: {
             'selected': document.getElementById('type').value,
-            'id': document.getElementById('in_id').value        
+            'id': document.getElementById('in_id').value,
+            'group': urlParams.get('group'),
+            'unhash': urlParams.get('unhash')
         },
         dataType:"json",
         success: function (data) {
             Plotly.newPlot('bargraph', data );
             enable_track(document.getElementById('bargraph'));
-            clearTimeout(handle);
-            handle = setTimeout(function() {
-                popup.show();
-          }, 5000);
+            //clearTimeout(handle);
+            //require feadback from user
+        //     handle = setTimeout(function() {
+        //         popup.show();
+        //   }, 5000);
         }
     });
 })

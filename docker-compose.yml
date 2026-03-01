@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: app_db
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql #авто-импорт базы
+      - mysql_data:/var/lib/mysql
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=app_db
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+
+volumes:
+  mysql_data:

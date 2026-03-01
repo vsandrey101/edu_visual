@@ -25,7 +25,11 @@ fontSize: "large"
 
 
 document.getElementById("form").onsubmit = function(evt) {
-    var credits = document.getElementById('credits').value
+    var hostname = document.getElementById('hostname').value
+    var dbname = document.getElementById('dbname').value
+    var uname = document.getElementById('uname').value
+    var password = document.getElementById('password').value
+    var credits = hostname + "&" + dbname + "&" + uname + "&" + password
     document.getElementById("path").value = credits.concat('@', editor.getValue());
 }
 

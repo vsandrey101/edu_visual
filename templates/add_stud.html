@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Добавление данных</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style_editor.css') }}">
+  <ul>
+  <li><a href="plotly_editor">Шаблоны</a></li>
+  <li><a href="add_source" >Источники</a></li>
+  <li><a href="add_graph">Диаграммы</a></li>
+  <li><a href="add_stud" class="active">Студенты</a></li>
+  <li><a href="manager">Менеджер</a></li>
+  <li><a href="/">Главная</a></li>
+</ul>
+</head>
+<body>
+  <center>
+  <h1>Добавление студентов и групп</h1>
+  <h3>Предварительно требуется <a href="/hash" target="_blank">хэширование ФИО</a></h3>
+
+  <label>
+    Выберите CSV файл:
+    <input type="file" id="csvFile" accept=".csv">
+  </label>
+  <br><br>
+  </center>
+
+  <label>
+    Поле Хэш-ФИО:
+    <select id="nameSelect" disabled>
+      <option value="">Сначала выберите файл</option>
+    </select>
+  </label>
+  <label>
+    Поле группы:
+    <select id="groupSelect" disabled>
+      <option value="">Сначала выберите файл</option>
+    </select>
+  </label>
+  <br><br>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+ <script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
+  <button id="processBtn" disabled>Добавить данные из файла</button>
+  
+  <script>
+
+    //парсер CSV [web:7][web:16]
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+      return lines.map(line => line.split(';'));
+    }
+
+
+    const fileInput = document.getElementById('csvFile');
+    const nameSelect = document.getElementById('nameSelect');
+    const groupSelect = document.getElementById('groupSelect');
+    const processBtn = document.getElementById('processBtn');
+
+    let originalFile = null;
+    let originalRows = null;
+
+    // После выбора файла читаем только заголовок и наполняем 
+    fileInput.addEventListener('change', () => {
+      if (!fileInput.files[0]) {
+        nameSelect.innerHTML = '<option value="">Сначала выберите файл</option>';
+        nameSelect.disabled = true;
+        groupSelect.innerHTML = '<option value="">Сначала выберите файл</option>';
+        groupSelect.disabled = true;
+        processBtn.disabled = true;
+        return;
+      }
+
+      originalFile = fileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const rows = parseCSV(text);
+
+        if (!rows.length) {
+          alert('Файл пустой или невалидный.');
+          groupSelect.disabled = true;
+          nameSelect.disabled = true;
+          processBtn.disabled = true;
+          return;
+        }
+
+        originalRows = rows;
+        const header = rows[0];
+
+        // select
+        groupSelect.innerHTML = '';
+        nameSelect.innerHTML = '';
+        header.forEach((colName, index) => {
+          const optionname = document.createElement('option');
+          optionname.value = index;
+          optionname.textContent = colName;
+          nameSelect.appendChild(optionname);
+          const optiongroup = document.createElement('option');
+          optiongroup.value = index;
+          optiongroup.textContent = colName;
+          groupSelect.appendChild(optiongroup);
+        });
+
+        nameSelect.disabled = false;
+        groupSelect.disabled = false;
+        processBtn.disabled = false;
+      };
+
+      reader.readAsText(originalFile); 
+    });
+
+    processBtn.addEventListener('click', async () => {
+      if (!originalFile || !originalRows) {
+        alert('Сначала выберите файл.');
+        return;
+      }
+
+      const nameIndex = nameSelect.value;
+      if (nameIndex === '') {
+        alert('Выберите колонку с хэш-ФИО');
+        return;
+      }
+      
+      const groupIndex = groupSelect.value;
+      if (groupIndex === '') {
+        alert('Выберите колонку с группой');
+        return;
+      }
+      if (groupIndex === nameIndex) {
+        alert('Поля ФИО и Группа не могут совпадать');
+        return;
+      }
+      const colIndexName = parseInt(nameIndex, 10);
+      const colIndexGroup = parseInt(groupIndex, 10);
+      console.log(colIndexName, colIndexGroup);
+
+      const names = [];
+      const groups = [];
+      for (let i = 1; i < originalRows.length; i++) {
+         const row = originalRows[i].slice();
+         names.push(row[colIndexName])
+         groups.push(row[colIndexGroup])
+         //console.log(row)
+       }
+      
+       $.ajax({
+        async: false,
+        url: "/add_stud",
+        type: "POST",
+        contentType: 'application/json; charset=UTF-8',
+        data: JSON.stringify({"Names": names, "Groups": groups}),
+        // dataType:"json",
+        success: function(response) {
+           alert("Успешно отправлено на сервер")
+        },
+        error: function(xhr, status, error) {
+            alert("Ошибка во время отправки")
+        }
+    })
+
+    });
+  </script>
+</body>
+</html>
